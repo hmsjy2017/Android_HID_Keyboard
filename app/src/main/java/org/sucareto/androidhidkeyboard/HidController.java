@@ -2,6 +2,7 @@ package org.sucareto.androidhidkeyboard;
 
 import android.util.Log;
 
+import com.topjohnwu.superuser.io.ExtendedFile;
 import com.topjohnwu.superuser.io.SuFile;
 import com.topjohnwu.superuser.io.SuFileInputStream;
 import com.topjohnwu.superuser.io.SuFileOutputStream;
@@ -36,7 +37,7 @@ public class HidController {
 
     public boolean kInit() {
         kCode = Arrays.copyOf(EMPTY_KEYBOARD_REPORT, EMPTY_KEYBOARD_REPORT.length);
-        SuFile keyboard = SuFile.open("/dev/hidg0");
+        ExtendedFile keyboard = SuFile.open("/dev/hidg0");
         if (!keyboard.exists()) {
             return true;
         }
@@ -53,7 +54,7 @@ public class HidController {
 
     public boolean mInit() {
         mCode = Arrays.copyOf(EMPTY_MOUSE_REPORT, EMPTY_MOUSE_REPORT.length);
-        SuFile mouse = SuFile.open("/dev/hidg1");
+        ExtendedFile mouse = SuFile.open("/dev/hidg1");
         if (!mouse.exists()) {
             return true;
         }
