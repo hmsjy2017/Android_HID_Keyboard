@@ -3,43 +3,47 @@ package org.sucareto.androidhidkeyboard;
 import android.util.Log;
 
 import com.topjohnwu.superuser.io.SuFile;
+import com.topjohnwu.superuser.io.SuFileInputStream;
 import com.topjohnwu.superuser.io.SuFileOutputStream;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 
 public class HidController {
-    public byte[] kCode = null;
-    public byte[] mCode = null;
+    private static final byte[] EMPTY_KEYBOARD_REPORT = new byte[]{0, 0, 0, 0, 0, 0, 0, 0};
+    private static final byte[] EMPTY_MOUSE_REPORT = new byte[]{0, 0, 0, 0};
+
+    public byte[] kCode = Arrays.copyOf(EMPTY_KEYBOARD_REPORT, EMPTY_KEYBOARD_REPORT.length);
+    public byte[] mCode = Arrays.copyOf(EMPTY_MOUSE_REPORT, EMPTY_MOUSE_REPORT.length);
     private OutputStream kDev = null;
     private OutputStream mDev = null;
+    private InputStream kDevIn = null;
+    private InputStream mDevIn = null;
 
     public void UnInit() {
-        if (kDev != null) {
-            try {
-                kDev.write(new byte[]{0, 0, 0, 0, 0, 0, 0, 0});
-                kDev.close();
-            } catch (IOException e) {
-                Log.e("UnInit", String.valueOf(e));
-            }
-        }
-        if (mDev != null) {
-            try {
-                mDev.write(new byte[]{0, 0, 0, 0});
-                mDev.close();
-            } catch (IOException e) {
-                Log.e("UnInit", String.valueOf(e));
-            }
-        }
+        releaseAll();
+        closeQuietly(kDev, "kDev");
+        closeQuietly(mDev, "mDev");
+        closeQuietly(kDevIn, "kDevIn");
+        closeQuietly(mDevIn, "mDevIn");
+        kDev = null;
+        mDev = null;
+        kDevIn = null;
+        mDevIn = null;
     }
 
     public boolean kInit() {
-        kCode = new byte[]{0, 0, 0, 0, 0, 0, 0, 0};
-        if (!SuFile.open("/dev/hidg0").exists()) {
+        kCode = Arrays.copyOf(EMPTY_KEYBOARD_REPORT, EMPTY_KEYBOARD_REPORT.length);
+        File keyboard = SuFile.open("/dev/hidg0");
+        if (!keyboard.exists()) {
             return true;
         }
         try {
-            kDev = SuFileOutputStream.open(SuFile.open("/dev/hidg0"));
+            kDev = SuFileOutputStream.open(keyboard);
+            kDevIn = SuFileInputStream.open(keyboard);
             kDev.write(kCode);
             return false;
         } catch (Exception e) {
@@ -49,13 +53,15 @@ public class HidController {
     }
 
     public boolean mInit() {
-        mCode = new byte[]{0, 0, 0, 0};
-        if (!SuFile.open("/dev/hidg1").exists()) {
+        mCode = Arrays.copyOf(EMPTY_MOUSE_REPORT, EMPTY_MOUSE_REPORT.length);
+        File mouse = SuFile.open("/dev/hidg1");
+        if (!mouse.exists()) {
             return true;
         }
         try {
-            mDev = SuFileOutputStream.open(SuFile.open("/dev/hidg1"));
-            mDev.write(kCode);
+            mDev = SuFileOutputStream.open(mouse);
+            mDevIn = SuFileInputStream.open(mouse);
+            mDev.write(mCode);
             return false;
         } catch (Exception e) {
             Log.e("mInit", String.valueOf(e));
@@ -73,6 +79,7 @@ public class HidController {
     }
 
     public void kPress(byte code) {
+        if (code == 0 || containsKey(code)) return;
         for (byte i = 2; i < 8; i++) {
             if (kCode[i] == 0) {
                 kCode[i] = code;
@@ -93,13 +100,13 @@ public class HidController {
     }
 
     public void kPress_c(byte code) {
-        kCode[0] += code;
+        kCode[0] |= code;
         kSend();
 
     }
 
     public void kRelease_c(byte code) {
-        kCode[0] -= code;
+        kCode[0] &= (byte) ~code;
         kSend();
     }
 
@@ -116,13 +123,46 @@ public class HidController {
     }
 
     public void mPress(byte code) {
-        mCode[0] += code;
+        mCode[0] |= code;
         mSend();
 
     }
 
     public void mRelease(byte code) {
-        mCode[0] -= code;
+        mCode[0] &= (byte) ~code;
         mSend();
+    }
+
+    public void releaseAll() {
+        kCode = Arrays.copyOf(EMPTY_KEYBOARD_REPORT, EMPTY_KEYBOARD_REPORT.length);
+        mCode = Arrays.copyOf(EMPTY_MOUSE_REPORT, EMPTY_MOUSE_REPORT.length);
+        kSend();
+        mSend();
+    }
+
+    public int readKeyboard(byte[] buffer) throws IOException {
+        return kDevIn == null ? -1 : kDevIn.read(buffer);
+    }
+
+    public int readMouse(byte[] buffer) throws IOException {
+        return mDevIn == null ? -1 : mDevIn.read(buffer);
+    }
+
+    private boolean containsKey(byte code) {
+        for (byte i = 2; i < 8; i++) {
+            if (kCode[i] == code) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void closeQuietly(AutoCloseable closeable, String name) {
+        if (closeable == null) return;
+        try {
+            closeable.close();
+        } catch (Exception e) {
+            Log.e("UnInit", "Failed to close " + name, e);
+        }
     }
 }

@@ -17,6 +17,25 @@ import org.sucareto.androidhidkeyboard.databinding.ActivityKeyboardBinding;
 public class Keyboard extends AppCompatActivity {
     HidController hid = new HidController();
     private boolean FnEnable = false;
+    private final int[] fnKeyIds = {
+            R.id.Btn12, R.id.Btn13, R.id.Btn65, R.id.Btn69, R.id.Btn70, R.id.Btn71
+    };
+    private final int[] normalFnTexts = {
+            R.string.KeyText12, R.string.KeyText13, R.string.KeyText84,
+            R.string.KeyText85, R.string.KeyText86, R.string.KeyText87
+    };
+    private final int[] normalFnCodes = {
+            R.string.KeyCode12, R.string.KeyCode13, R.string.KeyCode84,
+            R.string.KeyCode85, R.string.KeyCode86, R.string.KeyCode87
+    };
+    private final int[] enabledFnTexts = {
+            R.string.KeyText78, R.string.KeyText81, R.string.KeyText80,
+            R.string.KeyText79, R.string.KeyText83, R.string.KeyText82
+    };
+    private final int[] enabledFnCodes = {
+            R.string.KeyCode78, R.string.KeyCode81, R.string.KeyCode80,
+            R.string.KeyCode79, R.string.KeyCode83, R.string.KeyCode82
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +96,7 @@ public class Keyboard extends AppCompatActivity {
                     hid.kRelease((byte) Integer.parseInt(v.getTag().toString(), 16));
                 }
             }
-            return false;
+            return true;
         }
     }
 
@@ -104,7 +123,7 @@ public class Keyboard extends AppCompatActivity {
                     }
                 }
             }
-            return false;
+            return true;
         }
     }
 
@@ -121,7 +140,7 @@ public class Keyboard extends AppCompatActivity {
                     hid.kRelease_c((byte) Integer.parseInt(v.getTag().toString(), 16));
                 }
             }
-            return false;
+            return true;
         }
     }
 
@@ -138,7 +157,7 @@ public class Keyboard extends AppCompatActivity {
                     hid.kRelease((byte) Integer.parseInt(v.getTag().toString(), 16));
                 }
             }
-            return false;
+            return true;
         }
     }
 
@@ -149,34 +168,26 @@ public class Keyboard extends AppCompatActivity {
             switch (e.getAction()) {
                 case MotionEvent.ACTION_DOWN -> {
                     v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_PRESS);
-                    FnEnable = true;
+                    setFnEnabled(true);
                 }
-                case MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> FnEnable = false;
+                case MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> setFnEnabled(false);
                 default -> {
-                    return false;
+                    return true;
                 }
             }
-            ((Button) findViewById(R.id.Btn12)).setText(getResources().getString(FnEnable ? R.string.KeyText78 : R.string.KeyText12));//Insert
-            findViewById(R.id.Btn12).setTag(getResources().getString(FnEnable ? R.string.KeyCode78 : R.string.KeyCode12));
-
-            ((Button) findViewById(R.id.Btn13)).setText(getResources().getString(FnEnable ? R.string.KeyText81 : R.string.KeyText13));//Backspace,Delete
-            findViewById(R.id.Btn13).setTag(getResources().getString(FnEnable ? R.string.KeyCode81 : R.string.KeyCode13));
-
-            ((Button) findViewById(R.id.Btn65)).setText(getResources().getString(FnEnable ? R.string.KeyText80 : R.string.KeyText84));//Up,PgUp
-            findViewById(R.id.Btn65).setTag(getResources().getString(FnEnable ? R.string.KeyCode80 : R.string.KeyCode84));
-
-            ((Button) findViewById(R.id.Btn69)).setText(getResources().getString(FnEnable ? R.string.KeyText79 : R.string.KeyText85));//Left,Home
-            findViewById(R.id.Btn69).setTag(getResources().getString(FnEnable ? R.string.KeyCode79 : R.string.KeyCode85));
-
-            ((Button) findViewById(R.id.Btn70)).setText(getResources().getString(FnEnable ? R.string.KeyText83 : R.string.KeyText86));//Down,PgDn
-            findViewById(R.id.Btn70).setTag(getResources().getString(FnEnable ? R.string.KeyCode83 : R.string.KeyCode86));
-
-            ((Button) findViewById(R.id.Btn71)).setText(getResources().getString(FnEnable ? R.string.KeyText82 : R.string.KeyText87));//Right,End
-            findViewById(R.id.Btn71).setTag(getResources().getString(FnEnable ? R.string.KeyCode82 : R.string.KeyCode87));
-
-            ((Button) findViewById(R.id.BtnSpace)).setText(getResources().getString(FnEnable ? R.string.FnSpace : R.string.KeyText70));//Space
-            ((Button) findViewById(R.id.BtnEnter)).setText(getResources().getString(FnEnable ? R.string.FnEnter : R.string.KeyText54));//Enter
-            return false;
+            return true;
         }
+    }
+
+    private void setFnEnabled(boolean enabled) {
+        if (FnEnable == enabled) return;
+        FnEnable = enabled;
+        for (int i = 0; i < fnKeyIds.length; i++) {
+            Button button = findViewById(fnKeyIds[i]);
+            button.setText(getResources().getString(FnEnable ? enabledFnTexts[i] : normalFnTexts[i]));
+            button.setTag(getResources().getString(FnEnable ? enabledFnCodes[i] : normalFnCodes[i]));
+        }
+        ((Button) findViewById(R.id.BtnSpace)).setText(getResources().getString(FnEnable ? R.string.FnSpace : R.string.KeyText70));
+        ((Button) findViewById(R.id.BtnEnter)).setText(getResources().getString(FnEnable ? R.string.FnEnter : R.string.KeyText54));
     }
 }

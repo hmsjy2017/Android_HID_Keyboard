@@ -1,5 +1,7 @@
 # Android HID Keyboard
 
+[![Android Build](https://github.com/Sucareto/Android_HID_Keyboard/actions/workflows/android-build.yml/badge.svg)](https://github.com/Sucareto/Android_HID_Keyboard/actions/workflows/android-build.yml)
+
 将你的 Android 手机变成即插即用的 USB 键盘 & 鼠标！  
 可用于控制 PC，智能电视，手机等支持 USB 输入的设备，受控端不需要权限或安装软件  
 鼠标支持 X/Y 轴相对移动，滚轮按下、滑动，左右键  
@@ -30,10 +32,10 @@
 
 ### 项目现状：
 
-* 基本功能已实现，但因为 Android 开发经验不足，无法继续优化和实现新功能，暂时停止更新。
-* 目前键盘布局、按钮监听的实现效率低下，可能会出现卡键的状态，需要重新实现更好的布局方案。
-* 写入 HID 数据用的是 SuFileOutputStream，只能写入无法读取，需要寻找更好的实现。
-* 创建 HID 设备操作依赖 USB Gadget Tool 实现，且只能创建键盘 & 鼠标，也许可以在本程序内实现一个创建 HID 设备的功能页。
+* 键盘与鼠标基础功能已实现，并已改进按键状态管理，降低重复触发和卡键风险。
+* HID 报告写入改为集中维护按键状态，控制键和鼠标按键使用位运算维护，退出界面时会主动释放所有按键。
+* HID 设备文件同时打开输入流和输出流，后续可以基于读取能力扩展 LED 状态、设备状态检测等功能。
+* 创建 HID 设备操作目前仍依赖 USB Gadget Tool；后续可在本程序内新增 HID Gadget 配置页面。
 
 ### 感谢：
 

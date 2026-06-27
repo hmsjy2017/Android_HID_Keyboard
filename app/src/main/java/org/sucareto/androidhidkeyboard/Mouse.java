@@ -99,7 +99,7 @@ public class Mouse extends AppCompatActivity {
                     hid.kRelease((byte) Integer.parseInt(v.getTag().toString(), 16));
                 }
             }
-            return false;
+            return true;
         }
     }
 
@@ -116,7 +116,7 @@ public class Mouse extends AppCompatActivity {
                     hid.mRelease((byte) Integer.parseInt(v.getTag().toString(), 16));
                 }
             }
-            return false;
+            return true;
         }
     }
 
